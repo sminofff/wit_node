@@ -1,4 +1,4 @@
-Header header
+std_msgs/Header header
 float64 time
 float64[] acc
 float64[] gyro

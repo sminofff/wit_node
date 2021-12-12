@@ -11,7 +11,7 @@
 ** Includes
 *****************************************************************************/
 
-#include "../../include/wit_node/packet_handler/packet_finder.hpp"
+#include "wit_driver/packet_handler/packet_finder.hpp"
 #include <fstream>
 #include <sstream>
 using namespace std;

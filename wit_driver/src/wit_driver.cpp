@@ -1,5 +1,5 @@
 ﻿
-#include "../../include/wit_node/wit_driver.hpp"
+#include "wit_driver/wit_driver.hpp"
 #include <unistd.h>
 #include <cmath>
 #include <ecl/converters.hpp>
@@ -21,6 +21,52 @@ bool PacketFinder::checkSum() {
   }
 
   return (cs == buffer[packet_size - 1]) ? false : true;
+}
+
+ecl::BaudRate int_to_BaudRate(int rate){
+  if(rate == 110){
+      return ecl::BaudRate_110;
+  }
+  else if(rate == 300){
+      return ecl::BaudRate_300;
+  }
+  else if(rate == 600){
+      return ecl::BaudRate_600;
+  }
+  else if(rate == 1200){
+      return ecl::BaudRate_1200;
+  }
+  else if(rate == 2400){
+      return ecl::BaudRate_2400;
+  }
+  else if(rate == 4800){
+      return ecl::BaudRate_4800;
+  }
+  else if(rate == 9600){
+      return ecl::BaudRate_9600;
+  }
+  else if(rate == 19200){
+      return ecl::BaudRate_19200;
+  }
+  else if(rate == 38400){
+      return ecl::BaudRate_38400;
+  }
+  else if(rate == 57600){
+      return ecl::BaudRate_57600;
+  }
+  else if(rate == 115200){
+      return ecl::BaudRate_115200;
+  }
+  else if(rate == 230400){
+      return ecl::BaudRate_230400;
+  }
+  else if(rate == 460800){
+      return ecl::BaudRate_460800;
+  }
+  else if(rate == 921600){
+      return ecl::BaudRate_921600;
+  }
+  return ecl::BaudRate_115200;
 }
 
 WitDriver::WitDriver()
@@ -45,7 +91,8 @@ void WitDriver::init(Parameter &param) {
   sig_stream_data.connect(ns + std::string("/stream_data"));
 
   try {
-    serial.open(param_.port_, ecl::BaudRate_115200, ecl::DataBits_8,
+    ecl::BaudRate baud_rate = int_to_BaudRate(this->param_.baut_rate_);
+    serial.open(param_.port_, baud_rate, ecl::DataBits_8,
                 ecl::StopBits_1, ecl::NoParity);
     serial.block(4000);  // blocks by default, but just to be clear!
     connected_ = true;
@@ -93,7 +140,8 @@ void WitDriver::spin() {
      **********************/
     if (!serial.open()) {
       try {
-        serial.open(param_.port_, ecl::BaudRate_115200, ecl::DataBits_8,
+        ecl::BaudRate baud_rate = int_to_BaudRate(this->param_.baut_rate_);
+        serial.open(param_.port_, baud_rate, ecl::DataBits_8,
                     ecl::StopBits_1, ecl::NoParity);
         serial.block(4000);  // blocks by default, but just to be clear!
         connected_ = true;
@@ -146,7 +194,6 @@ void WitDriver::spin() {
         sig_stream_data.emit();
       }
       last_signal_time.stamp();
-
     } else {
       if (alive_ && ((ecl::TimeStamp() - last_signal_time) > timeout)) {
         alive_ = false;
@@ -154,5 +201,4 @@ void WitDriver::spin() {
     }
   }
 }
-
 }  // namespace WitDriver

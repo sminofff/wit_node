@@ -11,9 +11,9 @@
 ** Includes
 *****************************************************************************/
 
-#include "../../include/wit_node/data.hpp"
 #include <time.h>
-#include "../../include/wit_node/packet_handler/payload_headers.hpp"
+#include "wit_driver/data.hpp"
+#include "wit_driver/packet_handler/payload_headers.hpp"
 /*****************************************************************************
 ** Namespaces
 *****************************************************************************/

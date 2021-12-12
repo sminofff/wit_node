@@ -1,5 +1,5 @@
 
-#include "../../include/wit_node/command.hpp"
+#include "wit_driver/command.hpp"
 
 namespace wit {
 

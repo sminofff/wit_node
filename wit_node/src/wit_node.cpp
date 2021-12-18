@@ -33,8 +33,7 @@ namespace wit
     void WitNode::initializeParameter()
     {
         this->wit_param_.port_ = this->declare_parameter<std::string>("port", this->wit_param_.port_);
-        // this->wit_param_.baut_rate_ = this->declare_parameter<int>("baut_rate", this->wit_param_.baut_rate_);
-        this->wit_param_.baut_rate_ = this->declare_parameter<int>("baut_rate", 9600);
+        this->wit_param_.baut_rate_ = this->declare_parameter<int>("baut_rate", this->wit_param_.baut_rate_);
         this->frame_id_ = this->declare_parameter<std::string>("frame_id", this->frame_id_);
         this->publish_hz_ = this->declare_parameter<double>("publish_hz", this->publish_hz_);
 
@@ -117,14 +116,14 @@ namespace wit
     {
         this->imu_pub_ = this->create_publisher<sensor_msgs::msg::Imu>("/imu", 10);
         this->gps_pub_ = this->create_publisher<sensor_msgs::msg::NavSatFix>("/gps", 10);
-        this->raw_data_pub_ = this->create_publisher<wit_msgs::msg::ImuGpsRaw>("/raw_data", 10);
-        this->related_yaw_pub_ = this->create_publisher<std_msgs::msg::Float64>("/related_yaw", 10);
+        this->raw_data_pub_ = this->create_publisher<wit_msgs::msg::ImuGpsRaw>("~/raw_data", 10);
+        this->related_yaw_pub_ = this->create_publisher<std_msgs::msg::Float64>("~/related_yaw", 10);
     }
 
     void WitNode::createSubscrptions()
     {
         this->reset_offset_sub_ = create_subscription<std_msgs::msg::Empty>(
-            "/reset_offset", 10,
+            "~/reset_offset", 10,
             std::bind(&WitNode::subscribeResetOffset,
                       this, std::placeholders::_1));
     }

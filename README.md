@@ -2,8 +2,6 @@
 
 This is the ROS2 package for wit motion company imu and gps sensor. 
 
-ROS2 component_node is not supported yet.
-
 ## Dependencies and Install
 
 1. ROS2 foxy

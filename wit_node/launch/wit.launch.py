@@ -18,18 +18,27 @@ def generate_launch_description():
         launch.actions.DeclareLaunchArgument('publish_hz',
                                             default_value="10.0"),
     ]
-    wit_node = launch_ros.actions.Node(
-        package="wit_node", executable="wit_node",
-        parameters=[
-            {
-                "port": launch.substitutions.LaunchConfiguration('port'),
-                "baud_rate": launch.substitutions.LaunchConfiguration('baud_rate'),
-                "frame_id": launch.substitutions.LaunchConfiguration('frame_id'),
-                "publish_hz": launch.substitutions.LaunchConfiguration('publish_hz')
-            }
-        ]
-    )
+
+    container = ComposableNodeContainer(
+                name='wit_node_container',
+                namespace='',
+                package='rclcpp_components',
+                executable='component_container',
+                composable_node_descriptions=[
+                    ComposableNode(
+                        package='wit_node',
+                        plugin='wit::WitNode',
+                        name='wit',
+                        parameters=[{
+                            "port": launch.substitutions.LaunchConfiguration('port'),
+                            "baud_rate": launch.substitutions.LaunchConfiguration('baud_rate'),
+                            "frame_id": launch.substitutions.LaunchConfiguration('frame_id'),
+                            "publish_hz": launch.substitutions.LaunchConfiguration('publish_hz')
+                        }]),
+                ],
+                output='screen',
+        )
     return launch.LaunchDescription(
         params + 
-        [wit_node]
+        [container]
     )

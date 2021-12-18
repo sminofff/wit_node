@@ -1,36 +1,50 @@
 # wit_node
 
-This is the ROS nodelet package for wit motion company imu and gps sensor. Providing driver, ros driver and nodelet intergrating program.
+This is the ROS2 package for wit motion company imu and gps sensor. 
 
-
+ROS2 component_node is not supported yet.
 
 ## Dependencies and Install
 
-1. ROS
-2. ros-<distro>-ecl
+1. ROS2 foxy
+2. ros-foxy-ecl-*
 
 Install ecl by
 
 ```bash
-sudo apt install ros-<distro>-ecl
+distro="foxy"
+sudo apt install ros-${distro}-ecl-devices \
+                 ros-${distro}-ecl-sigslots \
+                 ros-${distro}-ecl-time \
+                 ros-${distro}-ecl-build \
+                 ros-${distro}-ecl-geometry
+```
+
+```bash
+source /opt/ros/foxy/setup.bash
+cd ~/ros2_ws/src
+git clone -b ros2 https://github.com/fateshelled/wit_node
+cd ~/ros2_ws
+colcon build --symlink-install
 ```
 
 
 
 ## Usage
 
-Launch the only ROS launch file:
-
 ```bash
-roslaunch wit_node wit.launch
+sudo chmod 666 /dev/ttyUSB0
+ros2 launch wit_node wit.launch.py
 ```
 
 About parameter:
 
--port
-
-This is the port that device name in Linux system, for example the default port name is "/dev/ttyUSB0"
-
+| name | default | type | about |
+| - | - | - | - |
+| port       | /dev/ttyUSB0 | string  | device name in Linux system. |
+| baud_rate  | 9600         | int     | speed of communication with wit motion device (bps). |
+| frame_id   | /imu_link    | string  | publishing topic frame_id. |
+| publish_hz | 10.0         | float64 | publishing rate (Hz). |
 
 
 ## Msg

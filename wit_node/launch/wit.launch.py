@@ -11,7 +11,7 @@ def generate_launch_description():
     params = [
         launch.actions.DeclareLaunchArgument('port',
                                             default_value="/dev/ttyUSB0"),
-        launch.actions.DeclareLaunchArgument('baut_rate',
+        launch.actions.DeclareLaunchArgument('baud_rate',
                                             default_value="9600"),
         launch.actions.DeclareLaunchArgument('frame_id',
                                             default_value="/imu_link"),
@@ -23,7 +23,7 @@ def generate_launch_description():
         parameters=[
             {
                 "port": launch.substitutions.LaunchConfiguration('port'),
-                "baut_rate": launch.substitutions.LaunchConfiguration('baut_rate'),
+                "baud_rate": launch.substitutions.LaunchConfiguration('baud_rate'),
                 "frame_id": launch.substitutions.LaunchConfiguration('frame_id'),
                 "publish_hz": launch.substitutions.LaunchConfiguration('publish_hz')
             }

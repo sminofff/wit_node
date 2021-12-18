@@ -91,7 +91,7 @@ void WitDriver::init(Parameter &param) {
   sig_stream_data.connect(ns + std::string("/stream_data"));
 
   try {
-    ecl::BaudRate baud_rate = int_to_BaudRate(this->param_.baut_rate_);
+    ecl::BaudRate baud_rate = int_to_BaudRate(this->param_.baud_rate_);
     serial.open(param_.port_, baud_rate, ecl::DataBits_8,
                 ecl::StopBits_1, ecl::NoParity);
     serial.block(4000);  // blocks by default, but just to be clear!
@@ -140,7 +140,7 @@ void WitDriver::spin() {
      **********************/
     if (!serial.open()) {
       try {
-        ecl::BaudRate baud_rate = int_to_BaudRate(this->param_.baut_rate_);
+        ecl::BaudRate baud_rate = int_to_BaudRate(this->param_.baud_rate_);
         serial.open(param_.port_, baud_rate, ecl::DataBits_8,
                     ecl::StopBits_1, ecl::NoParity);
         serial.block(4000);  // blocks by default, but just to be clear!

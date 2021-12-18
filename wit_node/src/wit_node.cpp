@@ -33,14 +33,14 @@ namespace wit
     void WitNode::initializeParameter()
     {
         this->wit_param_.port_ = this->declare_parameter<std::string>("port", this->wit_param_.port_);
-        this->wit_param_.baut_rate_ = this->declare_parameter<int>("baut_rate", this->wit_param_.baut_rate_);
+        this->wit_param_.baud_rate_ = this->declare_parameter<int>("baud_rate", this->wit_param_.baud_rate_);
         this->frame_id_ = this->declare_parameter<std::string>("frame_id", this->frame_id_);
         this->publish_hz_ = this->declare_parameter<double>("publish_hz", this->publish_hz_);
 
         RCLCPP_INFO(this->get_logger(), 
                     "port: " + this->wit_param_.port_);
         RCLCPP_INFO(this->get_logger(), 
-                    "baut_rate: " + std::to_string(this->wit_param_.baut_rate_));
+                    "baud_rate: " + std::to_string(this->wit_param_.baud_rate_));
     }
     bool WitNode::init()
     {
@@ -134,14 +134,16 @@ namespace wit
 
     void WitNode::processStreamData()
     {
-        sensor_msgs::msg::Imu imu_msg;
-        sensor_msgs::msg::NavSatFix gps_msg;
-        wit_msgs::msg::ImuGpsRaw raw_msg;
-        imu_msg.header.frame_id = this->frame_id_;
-        imu_msg.header.stamp = rclcpp::Clock().now();
-        gps_msg.header.stamp = rclcpp::Clock().now();
-        raw_msg.header.stamp = rclcpp::Clock().now();
+        std_msgs::msg::Header header;
+        header.frame_id = this->frame_id_;
+        header.stamp = rclcpp::Clock().now();
         Data::IMUGPS data = wd_->getData();
+        
+        std_msgs::msg::Float64 yaw_msg;
+        yaw_msg.data = wd_->getRelatedYaw();
+
+        sensor_msgs::msg::Imu imu_msg;
+        imu_msg.header = header;
         imu_msg.angular_velocity.x = data.w[0];
         imu_msg.angular_velocity.y = data.w[1];
         imu_msg.angular_velocity.z = data.w[2];
@@ -166,11 +168,16 @@ namespace wit
                 0.0, 0.01, 0.0,
                 0.0, 0.0, 0.01};
 
+        sensor_msgs::msg::NavSatFix gps_msg;
+        gps_msg.header = header;
         gps_msg.altitude = data.altitude;
         gps_msg.latitude = data.latitude;
         gps_msg.longitude = data.longtitude;
         gps_msg.position_covariance_type =
             sensor_msgs::msg::NavSatFix::COVARIANCE_TYPE_UNKNOWN;
+
+        wit_msgs::msg::ImuGpsRaw raw_msg;
+        raw_msg.header = header;
         for (int i = 0; i < 3; i++)
         {
             raw_msg.acc.push_back(data.a[i]);
@@ -194,13 +201,6 @@ namespace wit
         raw_msg.latitude = data.latitude;
         raw_msg.time = data.timestamp;
         raw_msg.temperature = data.temperature;
-
-        // wit_node_msgs::msg::Yaw yaw_msg;
-        // yaw_msg.header.frame_id = this->frame_id_;
-        // yaw_msg.header.stamp = rclcpp::Clock().now();
-        // yaw_msg.data = wd_->getRelatedYaw();
-        std_msgs::msg::Float64 yaw_msg;
-        yaw_msg.data = wd_->getRelatedYaw();
 
         this->imu_pub_->publish(imu_msg);
         this->gps_pub_->publish(gps_msg);

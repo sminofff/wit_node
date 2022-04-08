@@ -1,5 +1,4 @@
 #include "wit_node/wit_node.hpp"
-#include <tf2/LinearMath/Quaternion.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 namespace wit
@@ -13,34 +12,29 @@ namespace wit
     : rclcpp::Node("wit_ros", node_name, options)
     {
         if(this->init() == false){
-            rclcpp::shutdown();
+            rclcpp::shutdown(nullptr);
         };
-        rclcpp::CallbackGroup::SharedPtr group = nullptr;
-        std::chrono::duration<double> process_rate_(1.0 / this->publish_hz_);
-        this->update_timer_ = this->create_wall_timer(
-            process_rate_,
-            std::bind(&WitNode::update, this),
-            group
-        );
     }
     WitNode::~WitNode()
     {
-        RCLCPP_INFO(this->get_logger(), 
-                    "Waiting for WitDriver finish.");
-        // update_thread_.join();
-        wd_->shutdown();
+        RCLCPP_INFO(this->get_logger(), "Waiting for WitDriver finish.");
+        wd->shutdown();
     }
     void WitNode::initializeParameter()
     {
         this->wit_param_.port_ = this->declare_parameter<std::string>("port", this->wit_param_.port_);
         this->wit_param_.baud_rate_ = this->declare_parameter<int>("baud_rate", this->wit_param_.baud_rate_);
-        this->frame_id_ = this->declare_parameter<std::string>("frame_id", this->frame_id_);
-        this->publish_hz_ = this->declare_parameter<double>("publish_hz", this->publish_hz_);
+        this->frame_id = this->declare_parameter<std::string>("frame_id", this->frame_id);
+        this->publish_hz = this->declare_parameter<double>("publish_hz", this->publish_hz);
 
         RCLCPP_INFO(this->get_logger(), 
                     "port: " + this->wit_param_.port_);
         RCLCPP_INFO(this->get_logger(), 
                     "baud_rate: " + std::to_string(this->wit_param_.baud_rate_));
+        RCLCPP_INFO(this->get_logger(), 
+                    "frame_id: " + this->frame_id);
+        RCLCPP_INFO(this->get_logger(), 
+                    "publish_hz: " + std::to_string(this->publish_hz));
     }
     bool WitNode::init()
     {
@@ -55,8 +49,8 @@ namespace wit
         **********************/
         try
         {
-            wd_ = std::make_unique<wit::WitDriver>();
-            wd_->init(this->wit_param_);
+            wd = std::make_unique<wit::WitDriver>();
+            wd->init(this->wit_param_);
             rclcpp::WallRate rate(100ms);
             rate.sleep();
         }
@@ -85,39 +79,17 @@ namespace wit
             }
             return false;
         }
-        // update_thread_.start(&wit::WitDriver::spin, *this->wd_);
-        RCLCPP_INFO(this->get_logger(),
-                    "Initialized!");
+        RCLCPP_INFO(this->get_logger(), "Initialized!");
         return true;
-    }
-
-    void WitNode::update()
-    {
-        if (wd_->isShutdown())
-        {
-            RCLCPP_ERROR(
-                this->get_logger(),
-                "Driver has been shutdown. Stopping update loop.");
-            rclcpp::shutdown();
-            return;
-        }
-        if (!wd_->isConnected())
-        {
-            RCLCPP_ERROR(
-                this->get_logger(), 
-                "arm serial port is not connetced, please connect the arm.");
-            rclcpp::shutdown();
-            return;
-        }
-        this->processStreamData();
     }
 
     void WitNode::createPublishers()
     {
-        this->imu_pub_ = this->create_publisher<sensor_msgs::msg::Imu>("/imu", 10);
-        this->gps_pub_ = this->create_publisher<sensor_msgs::msg::NavSatFix>("/gps", 10);
-        this->raw_data_pub_ = this->create_publisher<wit_msgs::msg::ImuGpsRaw>("~/raw_data", 10);
-        this->related_yaw_pub_ = this->create_publisher<std_msgs::msg::Float64>("~/related_yaw", 10);
+        this->imu_pub = this->create_publisher<sensor_msgs::msg::Imu>("/imu", rclcpp::SensorDataQoS());
+        this->gps_pub = this->create_publisher<sensor_msgs::msg::NavSatFix>("/gps", rclcpp::SensorDataQoS());
+        this->raw_data_pub = this->create_publisher<wit_msgs::msg::ImuGpsRaw>("~/raw_data", rclcpp::SensorDataQoS());
+        this->related_yaw_pub = this->create_publisher<std_msgs::msg::Float64>("~/related_yaw", rclcpp::SensorDataQoS());
+        this->imu_pose_pub = this->create_publisher<geometry_msgs::msg::PoseStamped>("~/imu_pose", rclcpp::SensorDataQoS());
     }
 
     void WitNode::createSubscrptions()
@@ -129,25 +101,49 @@ namespace wit
     }
     void WitNode::subscribeResetOffset(const std_msgs::msg::Empty::ConstSharedPtr msg)
     {
-        wd_->resetYawOffset();
+        wd->resetYawOffset();
+        RCLCPP_INFO(this->get_logger(), "~/resetYawOffset.");
     }
+}
 
-    void WitNode::processStreamData()
+int main(int argc, char * argv[])
+{
+    rclcpp::init(argc, argv);
+    rclcpp::NodeOptions node_options;
+    auto node = std::make_shared<wit::WitNode>(node_options);
+    rclcpp::WallRate rate(node->publish_hz);
+    while (rclcpp::ok())
     {
+        if (node->wd->isShutdown())
+        {
+            RCLCPP_ERROR(
+                node->get_logger(),
+                "Driver has been shutdown. Stopping update loop.");
+            break;
+        }
+        if (!node->wd->isConnected())
+        {
+            RCLCPP_ERROR(
+                node->get_logger(), 
+                "arm serial port is not connetced, please connect the arm.");
+            break;
+        }
+
         std_msgs::msg::Header header;
-        header.frame_id = this->frame_id_;
+        header.frame_id = node->frame_id;
         header.stamp = rclcpp::Clock().now();
-        Data::IMUGPS data = wd_->getData();
+        wit::Data::IMUGPS data = node->wd->getData();
         
         std_msgs::msg::Float64 yaw_msg;
-        yaw_msg.data = wd_->getRelatedYaw();
+        yaw_msg.data = node->wd->getRelatedYaw();
 
         sensor_msgs::msg::Imu imu_msg;
         imu_msg.header = header;
+        // gyro
         imu_msg.angular_velocity.x = data.w[0];
         imu_msg.angular_velocity.y = data.w[1];
         imu_msg.angular_velocity.z = data.w[2];
-
+        // acc
         imu_msg.linear_acceleration.x = data.a[0];
         imu_msg.linear_acceleration.y = data.a[1];
         imu_msg.linear_acceleration.z = data.a[2];
@@ -168,13 +164,16 @@ namespace wit
                 0.0, 0.01, 0.0,
                 0.0, 0.0, 0.01};
 
+        geometry_msgs::msg::PoseStamped imu_pose;
+        imu_pose.header = header;
+        imu_pose.pose.orientation = imu_msg.orientation;
+        
         sensor_msgs::msg::NavSatFix gps_msg;
         gps_msg.header = header;
         gps_msg.altitude = data.altitude;
         gps_msg.latitude = data.latitude;
         gps_msg.longitude = data.longtitude;
-        gps_msg.position_covariance_type =
-            sensor_msgs::msg::NavSatFix::COVARIANCE_TYPE_UNKNOWN;
+        gps_msg.position_covariance_type = sensor_msgs::msg::NavSatFix::COVARIANCE_TYPE_UNKNOWN;
 
         wit_msgs::msg::ImuGpsRaw raw_msg;
         raw_msg.header = header;
@@ -202,21 +201,18 @@ namespace wit
         raw_msg.time = data.timestamp;
         raw_msg.temperature = data.temperature;
 
-        this->imu_pub_->publish(imu_msg);
-        this->gps_pub_->publish(gps_msg);
-        this->raw_data_pub_->publish(raw_msg);
-        this->related_yaw_pub_->publish(yaw_msg);
+        node->imu_pub->publish(imu_msg);
+        node->gps_pub->publish(gps_msg);
+        node->raw_data_pub->publish(raw_msg);
+        node->related_yaw_pub->publish(yaw_msg);
+        node->imu_pose_pub->publish(imu_pose);
+
+        if(!rclcpp::ok()) {
+            break;
+        }
+        rclcpp::spin_some(node);
+        rate.sleep();
     }
+    rclcpp::shutdown(nullptr);
+    return 0;
 }
-
-int main(int argc, char * argv[])
-{
-  rclcpp::init(argc, argv);
-  rclcpp::NodeOptions node_options;
-  rclcpp::spin(std::make_shared<wit::WitNode>(node_options));
-  rclcpp::shutdown();
-  return 0;
-}
-
-#include <rclcpp_components/register_node_macro.hpp>
-RCLCPP_COMPONENTS_REGISTER_NODE(wit::WitNode);

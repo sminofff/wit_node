@@ -48,37 +48,10 @@ wit_node
   DESTINATION lib/${PROJECT_NAME}
 )
 
-# component
-add_library(wit_node_component SHARED
-  src/wit_node.cpp
-)
-rclcpp_components_register_nodes(wit_node_component
- "wit::WitNode")
-target_compile_definitions(wit_node_component
-  PRIVATE "WIT_NODE_BUILDING_LIBRARY"
-)
-target_compile_options(wit_node_component PUBLIC -Wall)
-target_include_directories(wit_node_component PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
-)
-ament_target_dependencies(wit_node_component
-  rclcpp
-  rclcpp_components
-  std_msgs
-  geometry_msgs
-  sensor_msgs
-  tf2
-  wit_msgs
-  wit_driver
-  )
-install(TARGETS wit_node_component
-  EXPORT export_${PROJECT_NAME}
-  DESTINATION lib
-)
 
 install(DIRECTORY
   launch
+  rviz2
   DESTINATION share/${PROJECT_NAME}
 )
 

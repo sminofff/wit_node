@@ -1,6 +1,9 @@
 # wit_node
 
-This is the ROS2 package for wit motion company imu and gps sensor. 
+This is the non-official ROS2 package for wit motion company imu and gps sensor. 
+
+Tested with WitMotion WT901C RS232.
+
 
 ## Dependencies and Install
 
@@ -32,7 +35,11 @@ colcon build --symlink-install
 
 ```bash
 sudo chmod 666 /dev/ttyUSB0
+
 ros2 launch wit_node wit.launch.py
+
+# launch with rviz2
+ros2 launch wit_node wit_visualize.launch.py
 ```
 
 About parameter:
@@ -102,6 +109,10 @@ All raw data provided by the wit device, including nine axises data, atmosphere 
 ### /wit/related_yaw (std_msgs/Float64)
 
 The offseted imu yaw data, which means the zero direction is start direction.
+
+### /wit/imu_pose (geometry_msgs::msg::PoseStamped)
+
+Pose msg for visualize imu sensor msg with rviz2.
 
 
 

@@ -8,6 +8,8 @@ from launch_ros.actions import ComposableNodeContainer
 from launch_ros.descriptions import ComposableNode
 
 def generate_launch_description():
+    share_dir = get_package_share_directory('wit_node')
+    rviz_config_file = os.path.join(share_dir, 'rviz2','wit.rviz')
     params = [
         launch.actions.DeclareLaunchArgument('port',
                                             default_value="/dev/ttyUSB0"),
@@ -27,7 +29,12 @@ def generate_launch_description():
             "publish_hz": launch.substitutions.LaunchConfiguration('publish_hz')
         }],
     )
+    rviz2_node = launch_ros.actions.Node(
+        package='rviz2',
+        executable='rviz2',
+        arguments=['-d', rviz_config_file],
+    )
     return launch.LaunchDescription(
         params + 
-        [wit_node]
+        [wit_node, rviz2_node]
     )

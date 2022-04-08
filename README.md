@@ -47,7 +47,7 @@ About parameter:
 | name | default | type | about |
 | - | - | - | - |
 | port       | /dev/ttyUSB0 | string  | device name in Linux system. |
-| baud_rate  | 9600         | int     | speed of communication with wit motion device (bps). |
+| baud_rate  | 115200       | int     | speed of communication with wit motion device (bps). |
 | frame_id   | /imu_link    | string  | publishing topic frame_id. |
 | publish_hz | 10.0         | float64 | publishing rate (Hz). |
 

@@ -80,7 +80,7 @@ namespace wit
 
     void WitNode::createPublishers()
     {
-        this->imu_pub = this->create_publisher<sensor_msgs::msg::Imu>("/imu", rclcpp::SensorDataQoS());
+        this->imu_pub = this->create_publisher<sensor_msgs::msg::Imu>("/imu", 5);
         this->gps_pub = this->create_publisher<sensor_msgs::msg::NavSatFix>("/gps", rclcpp::SensorDataQoS());
         this->raw_data_pub = this->create_publisher<wit_msgs::msg::ImuGpsRaw>("~/raw_data", rclcpp::SensorDataQoS());
         this->related_yaw_pub = this->create_publisher<std_msgs::msg::Float64>("~/related_yaw", rclcpp::SensorDataQoS());

@@ -147,17 +147,17 @@ int main(int argc, char * argv[])
         q_tf2.setRPY(data.rpy[0], data.rpy[1], data.rpy[2]);
         imu_msg.orientation = tf2::toMsg(q_tf2);
         imu_msg.orientation_covariance =
-            {0.001, 0.0, 0.0,
-                0.0, 0.001, 0.0,
-                0.0, 0.0, 0.001};
+            {0.1, 0.0, 0.0,
+                0.0, 0.1, 0.0,
+                0.0, 0.0, 0.1};
         imu_msg.angular_velocity_covariance =
-            {0.00001, 0.0, 0.0,
-                0.0, 0.00001, 0.0,
-                0.0, 0.0, 0.00001};
+            {0.1, 0.0, 0.0,
+                0.0, 0.1, 0.0,
+                0.0, 0.0, 0.1};
         imu_msg.linear_acceleration_covariance =
-            {0.01, 0.0, 0.0,
-                0.0, 0.01, 0.0,
-                0.0, 0.0, 0.01};
+            {0.1, 0.0, 0.0,
+                0.0, 0.1, 0.0,
+                0.0, 0.0, 0.1};
 
         geometry_msgs::msg::PoseStamped imu_pose;
         imu_pose.header = header;
